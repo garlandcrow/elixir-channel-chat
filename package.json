@@ -47,6 +47,7 @@
     "dist-darwin": "run-s build pure-dist-darwin"
   },
   "dependencies": {
+    "phoenix": "^1.4.12",
     "postcss-input-range": "^4.0.0",
     "postcss-url": "^8.0.0",
     "smelte": "^0.2.4",

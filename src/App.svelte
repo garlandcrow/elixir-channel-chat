@@ -1,13 +1,38 @@
 <script>
-  import { Button, Checkbox, Switch, Snackbar } from 'smelte'
+  import { onMount } from 'svelte'
+  import socket from './socket'
+  import { sanitise } from './helpers'
+
+  // import { Button, Checkbox, Switch, Snackbar } from 'smelte'
 
   let newMessageText = ''
-  let messages = ['one', 'two', 'three', 'four']
+  let messages = []
 
   const submitMessage = () => {
-    messages = [...messages, newMessageText]
+    channel.push('shout', {
+      // send the message to the server
+      name: sanitise('morty'), // get value of "name" of person sending
+      message: sanitise(newMessageText), // get message text (value) from msg input
+    })
     newMessageText = ''
   }
+
+  let channel = socket.channel('room:lobby', {}) // connect to chat "room"
+
+  channel.on('shout', newMessage => {
+    messages = [...messages, newMessage]
+  })
+
+  onMount(() => {
+    channel
+      .join()
+      .receive('ok', resp => {
+        console.log('Joined chat!', resp)
+      })
+      .receive('error', resp => {
+        console.log('Unable to join', resp)
+      })
+  })
 </script>
 
 <div class="container flex bg-gray-100">
@@ -15,8 +40,8 @@
     class="m-10 p-4 pr-1 flex-1 rounded bg-blue-50 border border-blue-800 elevation-3 flex flex-col"
   >
     <div class="flex-1 mb-4 pr-3 overflow-scroll flex flex-col">
-      {#each messages as msg, idx}
-        <div class="message" class:theirs={idx % 2 == 0}>{msg}</div>
+      {#each messages as { name, message }, idx}
+        <div class="message" class:theirs={name !== 'morty'}>{message}</div>
       {/each}
     </div>
     <div class="flex">
